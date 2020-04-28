@@ -1,0 +1,111 @@
+PImage [] pictures;
+Leafs [] leaf = new Leafs[400];
+boolean leavesfall = false;
+
+float trunkLen =    200;        
+float windInc =     0.01;       
+
+float windSpeed =   0;          
+float noisePos =    0;          
+
+// for the fancier Pythagoras tree
+float branchAngle = 30;         // angle between two branches
+int minLen =        10;  
+
+
+
+void setup() {
+  size(600, 600);
+  frameRate(20);
+  //load images
+  pictures = new PImage [4];
+  pictures[0] = loadImage("redleaf.png");
+  pictures[1] = loadImage("brownleaf.png");
+  pictures[2] = loadImage("orangeleaf.png");
+  pictures[3] = loadImage("yellowleaf.png");
+  //set parameters...
+  for (int i = 0; i < 400; i++ ) { 
+    float x = 0;
+    float y = 0;
+    while (dist (width/2, height/3, x, y) > 250) {
+      x= random(150, 500);
+      y= random(300, 500);
+    }
+    leaf [i] = new Leafs (x, y, pictures[int(random(0, 4))]);
+  }
+}
+
+void draw() {
+  background(#7CB3E8);
+  
+
+ for (int i = 0; i < 400; i++) {    
+    leaf[i].display();
+    if (mousePressed) {
+      leavesfall = true;
+      }
+    if (leavesfall) {
+      leaf[i].fall();
+    }
+   }
+   
+   translate(200, height);
+   stroke(#7C6841);
+   strokeWeight(trunkLen/3);
+   color(#766343);
+   line(0,0, 0,-trunkLen);
+   branch(trunkLen);
+ 
+  
+   translate(width/2, height);
+   stroke(#7C6841);
+   strokeWeight(trunkLen/3);
+   color(#766343);
+   line(0,300, 0,-trunkLen);
+   branch(trunkLen);
+ 
+
+ 
+  windSpeed = noise(noisePos) * 30;
+  noisePos += windInc;
+  
+}
+
+// a recursive function to draw the tree (for more informa;tion
+// on recursive functions, see Basics > Recursion)
+void branch (float len) {
+ 
+ // e previous and reduce branch length
+  float prevLen = len;
+  len *= 0.5 * sqrt(2);    // experiment with changing this and see what happens
+  
+  // keep going until the branches are too small
+  if (len > minLen) {
+    
+    // larger branches are stiffer than little ones
+    float stiffness = map(len, minLen, trunkLen, 1.0, 0.2);
+   
+    // add some twist based on the wind speed and stiffness
+    float twist = windSpeed * stiffness;
+    
+    // draw left branches
+    pushMatrix();                             // local mode
+    translate(0, -prevLen);                   // move up to top of prev branch
+    rotate(radians(-branchAngle + twist));    // rotate to new position + twist from wind*
+    strokeWeight(len/3);
+    line(0, 0, 0, -len);                      // draw as a line
+    branch(len);                              // call again!
+    popMatrix();
+
+  
+    // draw right branches too
+    pushMatrix();
+    translate(0, -prevLen);
+    rotate(radians(branchAngle));
+    strokeWeight(len/3);
+    line(0, 0, 0, -len);
+    branch(len);
+    popMatrix();
+  }
+  
+}
